@@ -1,0 +1,3 @@
+-- Intentionally empty. This application does not seed demo client data.
+-- Provision the first administrator with:
+--   npm run admin:create -- admin@example.com "a-strong-password" "Admin Name"
