@@ -1,6 +1,11 @@
 "use client";
 
-import { useActionState, useState, type ReactNode } from "react";
+import {
+  useActionState,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -34,6 +39,52 @@ type ClientFormProps = {
   initialClient?: ClientWithPhoto;
 };
 
+type ClientFormValues = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  work_phone: string;
+  date_of_birth: string;
+  gender: string;
+  client_id: string;
+  department: string;
+  designation: string;
+  employment_type: string;
+  date_of_joining: string;
+  total_experience: string;
+  status: string;
+  aadhaar: string;
+  address: string;
+  notes: string;
+};
+
+function getInitialFormValues(client?: ClientWithPhoto): ClientFormValues {
+  return {
+    first_name: client?.first_name ?? "",
+    last_name: client?.last_name ?? "",
+    email: client?.email ?? "",
+    phone: client?.phone ?? "",
+    work_phone: client?.work_phone ?? "",
+    date_of_birth: client?.date_of_birth ?? "",
+    gender: client?.gender ?? "",
+    client_id: client?.client_id ?? "",
+    department: client?.department ?? "",
+    designation: client?.designation ?? "",
+    employment_type: client?.employment_type ?? "",
+    date_of_joining: client?.date_of_joining ?? "",
+    total_experience:
+      client?.total_experience !== null &&
+      client?.total_experience !== undefined
+        ? String(client.total_experience)
+        : "",
+    status: client?.status ?? "Active",
+    aadhaar: client?.aadhaar ?? "",
+    address: client?.address ?? "",
+    notes: client?.notes ?? "",
+  };
+}
+
 const TODAY = new Date().toISOString().slice(0, 10);
 
 export function ClientForm({ mode, initialClient }: ClientFormProps) {
@@ -44,8 +95,27 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
     INITIAL_CLIENT_FORM_STATE
   );
   const [photoUploading, setPhotoUploading] = useState(false);
-  const [firstName, setFirstName] = useState(initialClient?.first_name ?? "");
-  const [lastName, setLastName] = useState(initialClient?.last_name ?? "");
+  const [values, setValues] = useState<ClientFormValues>(() =>
+    getInitialFormValues(initialClient)
+  );
+
+  function handleFieldChange(
+    event: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) {
+    const { name, value } = event.target;
+    if (!name) return;
+
+    setValues((current) => ({ ...current, [name]: value }));
+  }
+
+  function fieldProps(name: keyof ClientFormValues) {
+    return {
+      value: values[name],
+      onChange: handleFieldChange,
+    };
+  }
 
   const errors = state.fieldErrors;
   const isSaving = pending || photoUploading;
@@ -80,8 +150,8 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
       >
         <div className="border-b border-ink-100 pb-5">
           <PhotoUpload
-            firstName={firstName}
-            lastName={lastName}
+            firstName={values.first_name}
+            lastName={values.last_name}
             initialPath={initialClient?.photo_url ?? null}
             initialUrl={initialClient?.photoSignedUrl ?? null}
             onUploadingChange={setPhotoUploading}
@@ -102,10 +172,9 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="e.g. Ananya"
               required
               maxLength={80}
-              defaultValue={initialClient?.first_name}
+              {...fieldProps("first_name")}
               invalid={Boolean(errors.first_name)}
               aria-describedby={errors.first_name ? "first_name-error" : undefined}
-              onChange={(event) => setFirstName(event.target.value)}
             />
           </FormField>
 
@@ -122,10 +191,9 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="e.g. Sharma"
               required
               maxLength={80}
-              defaultValue={initialClient?.last_name}
+              {...fieldProps("last_name")}
               invalid={Boolean(errors.last_name)}
               aria-describedby={errors.last_name ? "last_name-error" : undefined}
-              onChange={(event) => setLastName(event.target.value)}
             />
           </FormField>
 
@@ -143,7 +211,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="name@company.com"
               required
               maxLength={254}
-              defaultValue={initialClient?.email}
+              {...fieldProps("email")}
               invalid={Boolean(errors.email)}
               aria-describedby={errors.email ? "email-error" : undefined}
             />
@@ -163,7 +231,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="+1 555 010 2030"
               required
               maxLength={25}
-              defaultValue={initialClient?.phone}
+              {...fieldProps("phone")}
               invalid={Boolean(errors.phone)}
               aria-describedby={errors.phone ? "phone-error" : undefined}
             />
@@ -180,7 +248,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               type="tel"
               placeholder="+1 555 010 2040"
               maxLength={25}
-              defaultValue={initialClient?.work_phone ?? ""}
+              {...fieldProps("work_phone")}
               invalid={Boolean(errors.work_phone)}
               aria-describedby={errors.work_phone ? "work_phone-error" : undefined}
             />
@@ -196,7 +264,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               name="date_of_birth"
               type="date"
               max={TODAY}
-              defaultValue={initialClient?.date_of_birth ?? ""}
+              {...fieldProps("date_of_birth")}
               invalid={Boolean(errors.date_of_birth)}
               aria-describedby={
                 errors.date_of_birth ? "date_of_birth-error" : undefined
@@ -212,7 +280,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
             <Select
               id="gender"
               name="gender"
-              defaultValue={initialClient?.gender ?? ""}
+              {...fieldProps("gender")}
               invalid={Boolean(errors.gender)}
               aria-describedby={errors.gender ? "gender-error" : undefined}
             >
@@ -246,7 +314,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="e.g. BLM-001"
               required
               maxLength={40}
-              defaultValue={initialClient?.client_id}
+              {...fieldProps("client_id")}
               invalid={Boolean(errors.client_id)}
               aria-describedby={
                 errors.client_id ? "client_id-error" : "client_id-hint"
@@ -267,7 +335,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="e.g. Engineering"
               required
               maxLength={100}
-              defaultValue={initialClient?.department}
+              {...fieldProps("department")}
               invalid={Boolean(errors.department)}
               aria-describedby={errors.department ? "department-error" : undefined}
             />
@@ -285,7 +353,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               placeholder="e.g. Product Designer"
               required
               maxLength={100}
-              defaultValue={initialClient?.designation}
+              {...fieldProps("designation")}
               invalid={Boolean(errors.designation)}
               aria-describedby={
                 errors.designation ? "designation-error" : undefined
@@ -303,7 +371,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               id="employment_type"
               name="employment_type"
               required
-              defaultValue={initialClient?.employment_type ?? ""}
+              {...fieldProps("employment_type")}
               invalid={Boolean(errors.employment_type)}
               aria-describedby={
                 errors.employment_type ? "employment_type-error" : undefined
@@ -329,7 +397,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               name="date_of_joining"
               type="date"
               required
-              defaultValue={initialClient?.date_of_joining ?? ""}
+              {...fieldProps("date_of_joining")}
               invalid={Boolean(errors.date_of_joining)}
               aria-describedby={
                 errors.date_of_joining ? "date_of_joining-error" : undefined
@@ -352,7 +420,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               step="0.1"
               inputMode="decimal"
               placeholder="e.g. 4.5"
-              defaultValue={initialClient?.total_experience ?? ""}
+              {...fieldProps("total_experience")}
               invalid={Boolean(errors.total_experience)}
               aria-describedby={
                 errors.total_experience
@@ -372,7 +440,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               id="status"
               name="status"
               required
-              defaultValue={initialClient?.status ?? "Active"}
+              {...fieldProps("status")}
               invalid={Boolean(errors.status)}
               aria-describedby={errors.status ? "status-error" : undefined}
             >
@@ -404,7 +472,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
               inputMode="numeric"
               placeholder="0000 0000 0000"
               maxLength={14}
-              defaultValue={initialClient?.aadhaar ?? ""}
+              {...fieldProps("aadhaar")}
               invalid={Boolean(errors.aadhaar)}
               aria-describedby={errors.aadhaar ? "aadhaar-error" : "aadhaar-hint"}
             />
@@ -418,7 +486,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
             rows={3}
             maxLength={1000}
             placeholder="Street, city, state, postal code, country"
-            defaultValue={initialClient?.address ?? ""}
+            {...fieldProps("address")}
             invalid={Boolean(errors.address)}
             aria-describedby={errors.address ? "address-error" : undefined}
           />
@@ -431,7 +499,7 @@ export function ClientForm({ mode, initialClient }: ClientFormProps) {
             rows={4}
             maxLength={4000}
             placeholder="Add any relevant internal context about this client..."
-            defaultValue={initialClient?.notes ?? ""}
+            {...fieldProps("notes")}
             invalid={Boolean(errors.notes)}
             aria-describedby={errors.notes ? "notes-error" : undefined}
           />
